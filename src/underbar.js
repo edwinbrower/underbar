@@ -7,6 +7,7 @@
   // seem very useful, but remember it--if a function needs to provide an
   // iterator when the user does not pass one in, this will be handy.
   _.identity = function(val) {
+    return val;
   };
 
   /**
@@ -37,6 +38,8 @@
   // Like first, but for the last elements. If n is undefined, return just the
   // last element.
   _.last = function(array, n) {
+    if (n===undefined) return array[array.length-1];
+    return n>array.length ? array : array.slice(array.length-n, array.length);
   };
 
   // Call iterator(value, key, collection) for each element of collection.
@@ -45,6 +48,16 @@
   // Note: _.each does not have a return value, but rather simply runs the
   // iterator function over each item in the input collection.
   _.each = function(collection, iterator) {
+    if (Array.isArray(collection)){
+      for (var i=0; i<collection.length; i++){
+        iterator(collection[i], i, collection);
+      }
+    }
+    else {
+      for (var prop in collection){
+        iterator(collection[prop], prop, collection);
+      }
+    }
   };
 
   // Returns the index at which value can be found in the array, or -1 if value
@@ -66,21 +79,57 @@
 
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
+    var filtered = [];
+    _.each(collection, function(x){
+      if (test(x)) filtered.push(x);
+    });
+    /*for (var i=0; i<collection.length; i++){
+      if (test(collection[i])) filtered.push(collection[i]);
+    }*/
+    return filtered; 
   };
 
   // Return all elements of an array that don't pass a truth test.
   _.reject = function(collection, test) {
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
+    return _.filter(collection, function(x){
+      return !test(x);
+    });
+    /* the easy way without using _.filter
+    var unfiltered = [];
+    for (var i=0; i<collection.length; i++){
+      if (!test(collection[i])) unfiltered.push(collection[i]);
+    }
+    return unfiltered; */
   };
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
+      var unique = [];
+      _.each(array,function(x){
+        if (_.indexOf(unique, x) ===-1) unique.push(x);
+      });
+      /*_.each(array, function(x){
+        if (!unique.includes(x)) unique.push(x);
+      }); */
+      /*for (var i=0; i<array.length; i++){
+          if (!unique.includes(array[i])) unique.push(array[i]);
+      }*/
+      return unique;
   };
 
 
   // Return the results of applying an iterator to each element.
   _.map = function(collection, iterator) {
+    var mapped = [];
+    _.each(collection, function(x){
+      mapped.push(iterator(x));
+    });
+    /*for (var i=0; i<collection.length; i++){
+      mapped.push(iterator(collection[i]));
+    }*/
+    return mapped;
     // map() is a useful primitive iteration function that works a lot
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
@@ -125,6 +174,59 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
+    if (arguments.length<3) {
+      accumulator=collection[0];
+      collection = collection.slice(1,collection.length);
+    }
+    var reduced = accumulator;
+    _.each(collection, function(x){
+      reduced = iterator(reduced, x);
+    });
+
+    return reduced;
+
+/*
+function reduce(array, combine, start) {
+  var current = start;
+  for (var i = 0; i < array.length; i++)
+    current = combine(current, array[i]);
+  return current;
+}
+*/
+
+/*    Array.prototype.reduce = function(combiner, initialValue) {
+  var counter,
+    accumulatedValue;
+
+  // If the array is empty, do nothing
+  if (this.length === 0) {
+    return this;
+  }
+  else {
+    // If the user didn't pass an initial value, use the first item.
+    if (arguments.length === 1) {
+      counter = 1;
+      accumulatedValue = this[0];
+    }
+    else if (arguments.length >= 2) {
+      counter = 0;
+      accumulatedValue = initialValue;
+    }
+    else {
+      throw "Invalid arguments.";
+    }
+
+    // Loop through the array, feeding the current value and the result of
+    // the previous computation back into the combiner function until
+    // we've exhausted the entire array and are left with only one function.
+    while(counter < this.length) {
+      accumulatedValue = combiner(accumulatedValue, this[counter])
+      counter++;
+    }
+
+    return [accumulatedValue];
+  }
+}; */
   };
 
   // Determine if the array or object contains a given value (using `===`).
